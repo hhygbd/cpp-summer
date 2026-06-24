@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 3.10)
+project(CppSummer)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -Wall -Wextra")
+add_executable(summer_app src/main.cpp)
