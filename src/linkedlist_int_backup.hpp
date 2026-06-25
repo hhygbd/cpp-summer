@@ -5,60 +5,56 @@
 #include <algorithm>
 
 // 节点结构体
-template<typename T>
 struct Node {
-    T data;
-    Node<T>* next;//因为现在的 Node 全名是 Node<T>
-    Node(const T& val) : data(val), next(nullptr) {}
+    int data;
+    Node* next;
+    Node(int val) : data(val), next(nullptr) {}
 };
 
-template<typename T>
 class LinkedList {
 private:
-    Node<T>* head_;  // 头指针，指向第一个节点，空链表时为 nullptr
+    Node* head_;  // 头指针，指向第一个节点，空链表时为 nullptr
 
 public:
     // 构造函数
     LinkedList();
     
     // 拷贝构造函数
-    LinkedList(const LinkedList<T>& other);
+    LinkedList(const LinkedList& other);
 
     // 拷贝赋值运算符
-    LinkedList<T>& operator=(const LinkedList<T>& other);
+    LinkedList& operator=(const LinkedList& other);
     
     // 析构函数（释放所有节点）
     ~LinkedList();
     
     // 头插法
-    void insertHead(const T& value);
+    void insertHead(int value);
     
     // 打印所有节点
     void print() const;
 };
 
-template<typename T>
 // 构造函数：将 head_ 初始化为 nullptr
-LinkedList<T>::LinkedList():head_(nullptr){
+LinkedList::LinkedList():head_(nullptr){
     // 你写
 
 }
 
-template<typename T>
 // 拷贝构造函数
-LinkedList<T>::LinkedList(const LinkedList<T>& other){
+LinkedList::LinkedList(const LinkedList& other){
 
     if(other.head_==nullptr)return;//原来的链表为空链表则退出退出拷贝构造
 
-    this->head_=new Node<T>(other.head_->data);
+    this->head_=new Node(other.head_->data);
 
     //双指针
-    Node<T>* otherptr=other.head_;
-    Node<T>* thisptr=this->head_;
+    Node* otherptr=other.head_;
+    Node* thisptr=this->head_;
 
     while(otherptr->next!=nullptr){
 
-        thisptr->next=new Node<T>(otherptr->next->data);//构造节点
+        thisptr->next=new Node(otherptr->next->data);//构造节点
         //更新指针
         thisptr=thisptr->next;
         otherptr=otherptr->next;
@@ -67,13 +63,12 @@ LinkedList<T>::LinkedList(const LinkedList<T>& other){
 
 }
 
-template<typename T>
 // 拷贝赋值运算符
-LinkedList<T>& LinkedList<T>::operator=(const LinkedList<T>& other){
+LinkedList& LinkedList::operator=(const LinkedList& other){
     //首先防止自己赋值自己
     if(this==&other)return *this;
 
-    LinkedList<T> temp(other);//会调用内部的拷贝构造函数
+    LinkedList temp(other);//会调用内部的拷贝构造函数
 
     //交换内部指针
     std::swap(this->head_,temp.head_);
@@ -81,30 +76,27 @@ LinkedList<T>& LinkedList<T>::operator=(const LinkedList<T>& other){
     return *this;//temp调用析构函数，带走旧内存
 }
 
-template<typename T>
 // 析构函数：遍历链表，逐个 delete 所有节点
-LinkedList<T>::~LinkedList() {
+LinkedList::~LinkedList() {
     // 你写
     while(head_!=nullptr){
-        Node<T>* temp=head_;
+        Node* temp=head_;
         head_=head_->next;
         delete temp;
     }
 }
 
-template<typename T>
 // 头插法：创建新节点，让新节点的 next 指向当前 head_，然后 head_ 指向新节点
-void LinkedList<T>::insertHead(const T& value) {
+void LinkedList::insertHead(int value) {
     // 你写
-    Node<T>* newone=new Node<T>(value);
+    Node* newone=new Node(value);
     newone->next=head_;
     head_=newone;
 }
 
-template<typename T>
 // 打印所有节点 (格式: 30 -> 20 -> 10 -> nullptr)
-void LinkedList<T>::print() const {
-    const Node<T>* current = head_; // 注意：因为函数是const，但遍历指针本身不影响
+void LinkedList::print() const {
+    const Node* current = head_; // 注意：因为函数是const，但遍历指针本身不影响
     while (current != nullptr) {
         std::cout << current->data;
         if (current->next != nullptr) {

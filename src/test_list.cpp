@@ -1,23 +1,38 @@
 #include "linkedlist.hpp"
 #include <iostream>
+#include <string>
 
 int main() {
-    LinkedList list;
+    // 测试 int
+    LinkedList<int> list;
     list.insertHead(10);
     list.insertHead(20);
     list.insertHead(30);
-    
-    std::cout << "Original: ";
-    list.print(); // 预期: 30 -> 20 -> 10
+    std::cout << "Int list: ";
+    list.print();
 
-    // 测试拷贝构造
-    LinkedList list2 = list; 
+    // 测试拷贝构造（int）
+    LinkedList<int> list2 = list;
     list2.insertHead(999);
-    
-    std::cout << "Original after copy: ";
-    list.print();   // 预期不变: 30 -> 20 -> 10
-    std::cout << "Copy with new head: ";
-    list2.print();  // 预期: 999 -> 30 -> 20 -> 10
+    std::cout << "Int list (copy modified): ";
+    list2.print();
+    std::cout << "Original int list unchanged: ";
+    list.print();
+
+    // 测试 std::string
+    LinkedList<std::string> strList;
+    strList.insertHead("world");
+    strList.insertHead("hello");
+    std::cout << "String list: ";
+    strList.print();
+
+    // 测试拷贝构造（string）
+    LinkedList<std::string> strList2 = strList;
+    strList2.insertHead("hi");
+    std::cout << "String list (copy modified): ";
+    strList2.print();
+    std::cout << "Original string list unchanged: ";
+    strList.print();
 
     return 0;
 }
