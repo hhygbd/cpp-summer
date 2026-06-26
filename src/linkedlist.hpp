@@ -15,9 +15,49 @@ struct Node {
 template<typename T>
 class LinkedList {
 private:
+
     Node<T>* head_;  // 头指针，指向第一个节点，空链表时为 nullptr
 
 public:
+
+    class Iterator{
+    private:
+
+        Node<T>* ptr_;
+
+    public:
+        //构造函数
+        Iterator(Node<T>* p=nullptr):ptr_(p){};
+
+        //解引用 返回当前节点的数据引用
+        T& operator*() const {//加const，函数内部不更改数据
+            return this->ptr_->data;
+        }
+
+        //前置自增的运算符重载
+        Iterator& operator++(){
+            ptr_=ptr_->next;
+            return *this;
+        }
+
+        //后置自增的运算符重载
+        Iterator operator++(int){//int为占位符，区分前后自增
+            Iterator temp = *this;
+            this->ptr_=this->ptr_->next;
+            return temp;
+        }
+
+        //不等于运算符重载,当且仅当它们指向不同的节点
+        bool operator!=(const Iterator &other) const {
+            
+            return this->ptr_!=other.ptr_;
+
+        }
+    };
+
+    //新增的begin(),end()
+    Iterator begin(){ return Iterator(head_); }
+    Iterator end(){ return Iterator(nullptr); }
     // 构造函数
     LinkedList();
     
