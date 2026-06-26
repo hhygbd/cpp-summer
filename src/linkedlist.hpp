@@ -73,6 +73,39 @@ public:
     // 头插法
     void insertHead(const T& value);
     
+    //尾插法
+    void pushBack(const T& value);
+
+    //获取头节点数据
+    const T& front() const{
+        return this->head_->data;
+    }
+
+    //删除头节点
+    void popFront(){
+        if(this->head_ == nullptr) return;//空链表直接删除
+        //非空链表
+        Node<T>* temp=this->head_;
+        head_=head_->next;
+        delete(temp);
+    }
+
+    //判断链表是否为空
+    bool empty() const {
+        return this->head_ == nullptr;
+    }
+
+    //获取链表大小（遍历计数）
+    size_t size() const {
+        size_t count=0;
+        Node<T>* current=this->head_;
+        while(current!=nullptr){
+            count++;
+            current=current->next;
+        }
+        return count;
+    }
+
     // 打印所有节点
     void print() const;
 };
@@ -80,7 +113,7 @@ public:
 template<typename T>
 // 构造函数：将 head_ 初始化为 nullptr
 LinkedList<T>::LinkedList():head_(nullptr){
-    // 你写
+    
 
 }
 
@@ -140,6 +173,21 @@ void LinkedList<T>::insertHead(const T& value) {
     newone->next=head_;
     head_=newone;
 }
+
+template<typename T>
+//尾插法
+void LinkedList<T>::pushBack(const T& value){
+        if(head_==nullptr){//如果链表为空，则直接插入
+            head_=new Node<T>(value);
+            return;
+        }
+        //否则就遍历到头指针为空
+        Node<T>* current=head_;
+        while(current->next != nullptr){
+            current=current->next;
+        }
+        current->next=new Node<T>(value);
+    }
 
 template<typename T>
 // 打印所有节点 (格式: 30 -> 20 -> 10 -> nullptr)

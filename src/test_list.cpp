@@ -2,7 +2,7 @@
 #include <iostream>
 #include <string>
 
-int main() {
+int main1() {
     // 测试1：int 类型的范围 for 循环
     LinkedList<int> list;
     list.insertHead(10);
