@@ -58,8 +58,8 @@ int main(){
         while(true){
             char buffer[1024];
             memset(&buffer,0,sizeof(buffer));
-            ssize_t recv_len=recv(client_fd,&buffer,sizeof(buffer)-1,0);
-            if(recv_len==0)
+            ssize_t recv_len=recv(client_fd,&buffer,sizeof(buffer)-1,0);//recv()接受数据
+            if(recv_len==0)//正常关闭
             {
                 //客户端主动关闭
                  std::cout<<"Client disconnected: "<<std::endl;
@@ -73,7 +73,20 @@ int main(){
 
             }
             //将收到的数据原样发回（Echo）
-            send(client_fd,buffer,recv_len,0);
+            //修复send发送数据不完全可能出现的bug
+            //send不能保证一次把所有数据发完
+            ssize_t total_sent = 0;//记录已经发送可多少字节的数据
+            while(total_sent < recv_len){
+                //send返回已成功发送的字节数
+                ssize_t sent = send(client_fd,buffer+total_sent,recv_len-total_sent,0);//buf+tol,指针偏移运算
+                if(sent < 0){
+                    //错误，跳出循环
+                    std::cerr << "send error" << std::endl;
+                    break;
+                }
+                total_sent += sent;
+            }
+            
         }
         close(client_fd);
     }
