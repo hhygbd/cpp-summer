@@ -3,7 +3,17 @@
 #include<unistd.h>
 #include<arpa/inet.h>
 #include<sys/socket.h>
+#include<signal.h>
 
+//sig_atomic_t 保证“读”和“写”是原子操作
+//volatile 禁止编译器优化
+volatile sig_atomic_t running = 1;
+
+void handle_sigint(int sig)
+{
+    (void)sig;
+    running = 0;
+}
 int main(){
     //1、创建socket
 
@@ -42,13 +52,27 @@ int main(){
     }
     std::cout<<"Server is running on port 8888...."<<std::endl;
 
-    //5、主循环 accept->recv->send->close
-    while(true){
+    //信号注册
+    //按照我的写的handle_sigint来执行,不遵循默认执行
+    //之前的步骤执行错误直接推出，不需要注册信号
+    struct sigaction sa;
+    memset(&sa, 0, sizeof(sa));
+    sa.sa_handler = handle_sigint;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = 0;   // 关键：不设置 SA_RESTART，禁止系统调用自动重启
+    sigaction(SIGINT, &sa, nullptr);
+
+    //5、主循环 accept->recv->send->close  
+    //running(运行):1,running(终止):0；
+    while(running){
         struct sockaddr_in client_addr;
         socklen_t client_len=sizeof(client_addr);
         int client_fd=accept(listen_fd,(struct sockaddr*)&client_addr,&client_len);
         if(client_fd==-1){
-            std::cerr<<"accspt error"<<std::endl;
+            if(errno != EINTR){
+                std::cerr<<"accept error: "<< strerror(errno) <<std::endl;
+            }
+            
             continue;
         }
 
@@ -90,8 +114,10 @@ int main(){
         }
         close(client_fd);
     }
-    close(listen_fd);
 
+    std::cout << "Shutting down gracefully..." << std::endl;
+
+    close(listen_fd);
 
     return 0;
 }
