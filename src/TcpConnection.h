@@ -17,14 +17,17 @@ public:
     // 返回值：true 表示连接正常，false 表示连接断开或出错
     bool handleWrite();
 
-    // 将数据追加到输出缓冲区
-    void appendOutputBuffer(const std::string& data);
-
     // 获取文件描述符
     int Get_fd() const;
 
     // 检查输出缓冲区是否有待发送数据
     bool hasOutputData() const;
+
+    // 获取并清空接收缓冲区（供主线程提取数据）
+    std::string getAndClearInputBuffer();
+
+    // 追加数据到发送缓冲区（供主线程写入数据）
+    void appendOutputBuffer(const std::string& data);
 
     // 禁用拷贝
     TcpConnection(const TcpConnection&) = delete;

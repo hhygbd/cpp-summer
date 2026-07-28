@@ -2,6 +2,7 @@
 #define TCP_SERVER_H
 #include"EventLoop.h"
 #include"TcpConnection.h"
+#include"ThreadPool.h"
 #include<unordered_map>
 #include<memory>
 
@@ -18,18 +19,22 @@ private:
     void handleRead(int client_fd);
     void handleWrite(int client_fd);
     void handleError(int client_fd);
-
+    
     void removeConnection(int client_fd);
+
+    void handleWriteInLoop(int client_fd, const std::string& msg);
     EventLoop* loop_;
     int listen_fd_;
     int port_;
 
     Channel* listen_channel_;
 
-
     std::unordered_map<int,std::shared_ptr<TcpConnection>> connections_;
-
     std::unordered_map<int,std::unique_ptr<Channel>> client_channels_;
+
+    std::unique_ptr<ThreadPool> threadPool_;
+
+    
 
 };
 

@@ -143,7 +143,6 @@ int main(){
                 }
 
                 std::cout << "New connection from: " << inet_ntoa(client_addr.sin_addr) << std::endl;
-
                 // 将 client_fd 设为非阻塞
                 if (set_nonblocking(client_fd) == -1) {
                     std::cerr << "set_nonblocking client_fd error" << std::endl;

@@ -203,9 +203,9 @@ int main(){
                             // 如果只是因为缓冲区满了（EAGAIN），在非阻塞下很少见，但为了严谨可以只 break 然后等待下一次 EPOLLOUT。
                             if(errno == EAGAIN && errno == EWOULDBLOCK){
                                 //发不完，存起来
+                                std::cout << "[DEBUG] send EAGAIN, caching " << (recv_len - total_sent) << " bytes for fd " << client_fd << std::endl;
                                 std::string remaining(buffer+total_sent,recv_len-total_sent);
-
-                                std::cout << "Buffer saved for fd " << client_fd << ", remaining: " << recv_len - total_sent << " bytes" << std::endl;
+                                //std::cout << "Buffer saved for fd " << client_fd << ", remaining: " << recv_len - total_sent << " bytes" << std::endl;
 
                                 //把剩余的数据追加到该客户的缓冲区
                                 output_buffers[client_fd] += remaining;

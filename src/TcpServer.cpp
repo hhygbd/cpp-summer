@@ -69,6 +69,10 @@ TcpServer::TcpServer(EventLoop* loop, int port)
     });
 
     std::cout << "TcpServer initialized on port " << port_ << std::endl;
+
+    threadPool_ = std::make_unique<ThreadPool>(4);
+
+
 }
 
 void TcpServer::start() {
@@ -145,10 +149,29 @@ void TcpServer::handleRead(int client_fd) {
         return;
     }
 
-    bool alive = it->second->handleRead();
+    auto& conn = it->second;
+
+    bool alive = conn->handleRead();
     if (!alive) {
         removeConnection(client_fd);
+        return;
     }
+
+    std::string msg = conn->getAndClearInputBuffer();
+    if(msg.empty()){
+        return;
+    }
+
+    threadPool_->addTask([this,client_fd,msg]{
+
+        std::this_thread::sleep_for(std::chrono::seconds(3));
+        std::string response = msg;
+
+        loop_->runInLoop([this,client_fd,response]{
+            handleWriteInLoop(client_fd,response);
+        });
+    });
+
 }
 
 void TcpServer::handleWrite(int client_fd) {
@@ -199,5 +222,36 @@ TcpServer::~TcpServer() {
     // 关闭监听套接字
     if (listen_fd_ >= 0) {
         close(listen_fd_);
+    }
+}
+
+void TcpServer::handleWriteInLoop(int client_fd, const std::string& msg){
+    auto conn_it = connections_.find(client_fd);
+    if(conn_it == connections_.end()){
+        return;
+    }
+
+    auto& conn = conn_it->second;
+
+    conn->appendOutputBuffer(msg);
+
+    bool alive = conn->handleWrite();
+    if(!alive){
+        removeConnection(client_fd);
+        return;
+    }
+
+    if(conn->hasOutputData()){
+        auto ch_it = client_channels_.find(client_fd);
+        if(ch_it != client_channels_.end()){
+            ch_it->second->enableWriting();
+            loop_->updateChannel(ch_it->second.get());
+        }
+    }else{
+        auto ch_it = client_channels_.find(client_fd);
+        if(ch_it != client_channels_.end()){
+            ch_it->second->disableWriting();
+            loop_->updateChannel(ch_it->second.get());
+        }
     }
 }

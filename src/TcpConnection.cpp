@@ -23,8 +23,6 @@ bool TcpConnection::handleRead(){
 
             if(recv_len > 0){
                 input_buffer_ .append(buffer,recv_len);
-                output_buffer_.append(input_buffer_);
-                input_buffer_.clear();
             }else if(recv_len == 0){
                 //客户端主动断开（发送了FIN）
                 std::cout << "Client disconnect" << std::endl;
@@ -39,8 +37,6 @@ bool TcpConnection::handleRead(){
                 return false;
             }
         }
-
-        handleWrite();
         return true;
 }
 
@@ -77,4 +73,18 @@ bool TcpConnection::handleWrite(){
 
 int TcpConnection::Get_fd() const{
     return fd_;
+}
+
+bool TcpConnection::hasOutputData() const{
+    return !output_buffer_.empty();
+}
+
+std::string TcpConnection::getAndClearInputBuffer(){
+    std::string data = std::move(input_buffer_);
+    input_buffer_.clear();
+    return data;
+}
+
+void TcpConnection::appendOutputBuffer(const std::string& data){
+    output_buffer_.append(data);
 }
