@@ -1,42 +1,70 @@
 #ifndef TCP_CONNECTION_H
 #define TCP_CONNECTION_H
 
-#include <string>
-#include <memory>
+#include"EventLoop.h"
+#include"Channel.h"
+#include<atomic>
+#include<string>
+#include<memory>
+#include<functional>
 
-class TcpConnection {
+//继承——enable_shared_from_this,以便在回调的过程中安全传递this的智能指针
+class TcpConnection : public std::enable_shared_from_this<TcpConnection>{
 public:
-    explicit TcpConnection(int fd);
+
+    //构造函数需要传入所属的EventLoop
+    TcpConnection(EventLoop* loop, int fd);
     ~TcpConnection();
 
-    // 处理 EPOLLIN 事件（循环 recv）
-    // 返回值：true 表示连接正常，false 表示连接断开或出错（需要关闭）
-    bool handleRead();
+    // ----- 跨线程生命周期管理（由 TcpServer 调用）-----
+    //建立连接时调用：将 Channle 注册到所属的 EventLoop
+    void connectEstablished();
+    //销毁连接时调用：将 Channle 从 EventLoop 注销
+    void connectDestroyed();
 
-    // 处理 EPOLLOUT 事件（循环 send 缓冲区数据）
-    // 返回值：true 表示连接正常，false 表示连接断开或出错
-    bool handleWrite();
+    // ----- 线程安全的发送接口 -----
+    //可在任意线程调用，内部会转发到所属的 EventLoop 执行
+    void send(const std::string& msg);
 
-    // 获取文件描述符
-    int Get_fd() const;
+    //强制关闭连接（线程安全)
+    void forceClose();
+    
+    // ----- 查询接口 -----
+    int fd() const{ return fd_; }
+    EventLoop* getLoop() const{ return loop_; } 
 
-    // 检查输出缓冲区是否有待发送数据
-    bool hasOutputData() const;
 
-    // 获取并清空接收缓冲区（供主线程提取数据）
-    std::string getAndClearInputBuffer();
-
-    // 追加数据到发送缓冲区（供主线程写入数据）
-    void appendOutputBuffer(const std::string& data);
-
-    // 禁用拷贝
+    // ----- 禁用拷贝 -----
     TcpConnection(const TcpConnection&) = delete;
     TcpConnection& operator=(const TcpConnection&) = delete;
 
 private:
+    // ----- 实际在所属 EventLoop 线程中执行的函数 -----
+    void connectEstablishedInLoop();
+    void connectDestroyedInLoop();
+    void sendInLoop(const std::string& msg);
+    void forceCloseInLoop();
+
+    // ----- Channel 事件回调（绑定到 Channel 上）-----
+    void handleRead();
+    void handleWrite();
+    void handleError();
+    void handleClose();// 处理对端关闭或严重错误
+
+    // ----- 连接状态管理 -----
+    enum StateE { kConnecting, kConnected, kDisconnecting, kDisconnected };
+    void SetState(StateE s) { state_.store(s); }
+
+    // ----- 成员变量 -----
+    EventLoop* loop_; // 当前连接所属的 EventLoop（子线程）
     int fd_;
-    std::string input_buffer_;  // 接收缓冲区（目前 Echo 服务器可能用不到，但标准设计必须有）
-    std::string output_buffer_; // 发送缓冲区（替代你原来的全局 output_buffers）
+    std::unique_ptr<Channel> channel_;// 接管 Channel 的所有权
+
+    std::string input_buffer_;
+    std::string output_buffer_;
+
+    std::atomic<StateE> state_;// 线程安全的连接状态
+
 };
 
 // 使用智能指针管理连接生命周期
