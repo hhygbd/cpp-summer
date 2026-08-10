@@ -1,16 +1,23 @@
 #include"TcpServer.h"
 #include"EventLoop.h"
 #include<iostream>
+#include <signal.h>
 
-int main(){
+EventLoop* g_loop = nullptr;
+
+void signalHandler(int sig) {
+    if (sig == SIGINT && g_loop) {
+        g_loop->quit();
+    }
+}
+
+int main() {
+    signal(SIGINT, signalHandler);
     EventLoop loop;
-    TcpServer server(&loop, 8888);
-
+    g_loop = &loop;
+    TcpServer server(&loop, 8888, 4);
     server.start();
-
-    std::cout << "Server is running. Press Ctrl+C to stop." << std::endl;
-
     loop.loop();
-
+    std::cout << "Server stopped." << std::endl;
     return 0;
 }

@@ -2,39 +2,34 @@
 #define TCP_SERVER_H
 #include"EventLoop.h"
 #include"TcpConnection.h"
-#include"ThreadPool.h"
+#include"EventLoopThreadPool.h"
 #include<unordered_map>
 #include<memory>
 
 class TcpServer{
 public:
-    TcpServer(EventLoop* loop, int port);
+    //threadNum = 0 表示不创建子线程，退化为单 Reactor
+    TcpServer(EventLoop* loop, int port, int threadNum = 0);
     ~TcpServer();
+
     void start();
 
 private:
 
     void handleAccept();
+    void removeConnection(const TcpConnectionPtr& conn);
+    void removeConnectionInLoop(const TcpConnectionPtr& conn);
 
-    void handleRead(int client_fd);
-    void handleWrite(int client_fd);
-    void handleError(int client_fd);
-    
-    void removeConnection(int client_fd);
-
-    void handleWriteInLoop(int client_fd, const std::string& msg);
     EventLoop* loop_;
     int listen_fd_;
     int port_;
+    std::unique_ptr<Channel> listen_channel_;
 
-    Channel* listen_channel_;
+    //管理所有活跃的连接
+    std::unordered_map<int,TcpConnectionPtr> connections_;
 
-    std::unordered_map<int,std::shared_ptr<TcpConnection>> connections_;
-    std::unordered_map<int,std::unique_ptr<Channel>> client_channels_;
-
-    std::unique_ptr<ThreadPool> threadPool_;
-
-    
+    //子线程池
+    std::unique_ptr<EventLoopThreadPool> threadPool_;
 
 };
 
