@@ -8,6 +8,10 @@
 #include<memory>
 #include<functional>
 
+// 前置声明 TcpConnection，以便定义 TcpConnectionPtr
+class TcpConnection;
+using TcpConnectionPtr = std::shared_ptr<TcpConnection>;
+
 //继承——enable_shared_from_this,以便在回调的过程中安全传递this的智能指针
 class TcpConnection : public std::enable_shared_from_this<TcpConnection>{
 public:
@@ -38,6 +42,10 @@ public:
     TcpConnection(const TcpConnection&) = delete;
     TcpConnection& operator=(const TcpConnection&) = delete;
 
+    using CloseCallback = std::function<void(const TcpConnectionPtr&)>;
+    void setCloseCallback(const CloseCallback& cb) { closeCallback_ = cb; }
+
+
 private:
     // ----- 实际在所属 EventLoop 线程中执行的函数 -----
     void connectEstablishedInLoop();
@@ -51,9 +59,11 @@ private:
     void handleError();
     void handleClose();// 处理对端关闭或严重错误
 
+    CloseCallback closeCallback_;
+
     // ----- 连接状态管理 -----
     enum StateE { kConnecting, kConnected, kDisconnecting, kDisconnected };
-    void SetState(StateE s) { state_.store(s); }
+    void setState(StateE s) { state_.store(s); }
 
     // ----- 成员变量 -----
     EventLoop* loop_; // 当前连接所属的 EventLoop（子线程）
@@ -66,8 +76,5 @@ private:
     std::atomic<StateE> state_;// 线程安全的连接状态
 
 };
-
-// 使用智能指针管理连接生命周期
-using TcpConnectionPtr = std::shared_ptr<TcpConnection>;
 
 #endif // TCP_CONNECTION_H

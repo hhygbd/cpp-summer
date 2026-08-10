@@ -39,7 +39,7 @@ void TcpConnection::connectDestroyed(){
 
 void TcpConnection::connectEstablishedInLoop(){
 
-    SetState(kConnected);
+    setState(kConnected);
     channel_->enableReading();
     loop_->updateChannel(channel_.get());
 
@@ -48,7 +48,7 @@ void TcpConnection::connectEstablishedInLoop(){
 void TcpConnection::connectDestroyedInLoop(){
 
     if(state_.load() == kConnected){
-        SetState(kDisconnected);
+        setState(kDisconnected);
         channel_->disableAll();//关闭所有事件
         loop_->removeChannel(channel_.get());//从Epoll中移除
     }
@@ -95,7 +95,7 @@ void TcpConnection::sendInLoop(const std::string& msg){
 
 void TcpConnection::forceClose(){
     if(state_.load() == kConnected || state_.load() == kDisconnecting){
-        SetState(kDisconnecting);
+        setState(kDisconnecting);
         loop_->runInLoop(std::bind(&TcpConnection::forceCloseInLoop, shared_from_this()));
     }
 }
@@ -207,9 +207,13 @@ void TcpConnection::handleClose() {
     // 防止重复关闭
     if (state_.load() == kDisconnected) return;
 
-    SetState(kDisconnected);
+    setState(kDisconnected);
     channel_->disableAll();
     loop_->removeChannel(channel_.get());
+
+    if(closeCallback_){
+        closeCallback_(shared_from_this());
+    }
 
 }
 

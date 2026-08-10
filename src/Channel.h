@@ -18,6 +18,8 @@ public:
     void enableWriting(){ events_ |= EPOLLOUT; }
     void disableWriting(){ events_ &= ~EPOLLOUT; }
     void disableAll(){ events_ = 0; }
+
+    bool isWriting() const { return events_ & EPOLLOUT; }
      // 供 Epoll 类调用的接口
     int Get_fd() const { return fd_; }
     uint32_t Get_events() const { return events_; }
