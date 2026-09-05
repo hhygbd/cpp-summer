@@ -1,1 +1,0 @@
-/usr/bin/c++ CMakeFiles/summer_app.dir/src/main.cpp.o -o summer_app 

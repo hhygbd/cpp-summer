@@ -57,7 +57,7 @@ TcpServer::TcpServer(EventLoop* loop, int port, int threadNum)
     }
 
     //listen
-    if(listen(listen_fd_,10) == -1){
+    if(listen(listen_fd_,1024) == -1){
         std::cerr << "listen error" << std::endl;
         close(listen_fd_);
         exit(1);

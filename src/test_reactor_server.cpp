@@ -11,11 +11,21 @@ void signalHandler(int sig) {
     }
 }
 
-int main() {
+int main(int argc, char* argv[]) {
     signal(SIGINT, signalHandler);
+    int threadNum = 4;
+    if (argc > 1) {
+        int val = std::atoi(argv[1]);
+        if (val >= 0) {
+            threadNum = val;
+        } else {
+            std::cerr << "Invalid thread number: " << argv[1] 
+                      << ", using default 4" << std::endl;
+        }
+    }
     EventLoop loop;
     g_loop = &loop;
-    TcpServer server(&loop, 8888, 4);
+    TcpServer server(&loop, 8888, threadNum);
     server.start();
     loop.loop();
     std::cout << "Server stopped." << std::endl;

@@ -1,9 +1,22 @@
+# 构建产物
+build/
+*.o
+*.out
+# 可执行文件
+test_reactor_server
+load_test_client
+test_eventloop_thread
 echo_server
 echo_server_fork
 echo_server_pthread
-epoll_server_buffer
-epoll_server_et
-epoll_server_lt
 epoll_server_skel
+epoll_server_lt
+epoll_server_et
+epoll_server_buffer
 test_ThreadPool
-test_reactor_server
+# IDE
+.vscode/
+# 个人笔记
+PROJECT_CONTEXT.md
+# 其他
+*.gpg
